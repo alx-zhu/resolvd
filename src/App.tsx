@@ -1,35 +1,94 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useCurrentUser, useCurrentUserId } from "./hooks/useUsers";
+import Dashboard from "./pages/Dashboard";
+import Feed from "./pages/Feed";
+import Friends from "./pages/Friends";
+import { UserSwitcher } from "./components/UserSwitcher";
 
-function App() {
-  const [count, setCount] = useState(0)
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+type Tab = "dashboard" | "feed" | "friends";
+
+function AppContent() {
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const { data: currentUser } = useCurrentUser();
+
+  if (!currentUser) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Goals</h1>
+          <UserSwitcher />
+        </div>
+      </header>
+
+      {/* Navigation Tabs */}
+      <nav className="border-b bg-background">
+        <div className="container mx-auto px-4">
+          <div className="flex gap-8">
+            <button
+              onClick={() => setActiveTab("dashboard")}
+              className={`py-4 px-1 border-b-2 transition-colors ${
+                activeTab === "dashboard"
+                  ? "border-primary text-foreground font-medium"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              My Goals
+            </button>
+            <button
+              onClick={() => setActiveTab("feed")}
+              className={`py-4 px-1 border-b-2 transition-colors ${
+                activeTab === "feed"
+                  ? "border-primary text-foreground font-medium"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Feed
+            </button>
+            <button
+              onClick={() => setActiveTab("friends")}
+              className={`py-4 px-1 border-b-2 transition-colors ${
+                activeTab === "friends"
+                  ? "border-primary text-foreground font-medium"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Friends
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        {activeTab === "dashboard" && <Dashboard userId={currentUser.id} />}
+        {activeTab === "feed" && <Feed userId={currentUser.id} />}
+        {activeTab === "friends" && <Friends userId={currentUser.id} />}
+      </main>
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
+  );
+}
+
+export default App;
