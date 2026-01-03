@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useCurrentUser, useCurrentUserId } from "./hooks/useUsers";
+import { useCurrentUser } from "./hooks/useUsers";
 import Dashboard from "./pages/Dashboard";
 import Feed from "./pages/Feed";
 import Friends from "./pages/Friends";
 import { UserSwitcher } from "./components/UserSwitcher";
+import { ThemeProvider } from "./providers";
+import { ThemeToggle } from "./components/common";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,10 +30,13 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <h1 className="text-2xl font-bold">Goals</h1>
-          <UserSwitcher />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserSwitcher />
+          </div>
         </div>
       </header>
 
@@ -85,9 +90,11 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
