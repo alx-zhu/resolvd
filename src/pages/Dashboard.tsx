@@ -2,8 +2,7 @@ import { useState, useMemo } from "react";
 import { useGoalsByUser } from "@/hooks/useGoals";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GoalCard } from "@/components/goals/GoalCard";
-import { CreateGoalDialog } from "@/components/goals/CreateGoalDialog";
+import { GoalCard, CreateGoalDialog } from "@/components/goals";
 import { Plus, Search, Grid3x3, List, SortAsc } from "lucide-react";
 import type { ViewMode } from "@/types/goals";
 
@@ -123,7 +122,9 @@ export default function Dashboard({ userId }: DashboardProps) {
           variant="outline"
           size="icon"
           onClick={toggleViewMode}
-          title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+          title={
+            viewMode === "grid" ? "Switch to list view" : "Switch to grid view"
+          }
         >
           {viewMode === "grid" ? (
             <List className="size-4" />
@@ -142,18 +143,15 @@ export default function Dashboard({ userId }: DashboardProps) {
                 <p className="text-muted-foreground">
                   No goals found matching "{searchQuery}"
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setSearchQuery("")}
-                >
+                <Button variant="outline" onClick={() => setSearchQuery("")}>
                   Clear Search
                 </Button>
               </>
             ) : (
               <>
                 <p className="text-muted-foreground">
-                  You haven't created any goals yet. Start by creating your first
-                  goal!
+                  You haven't created any goals yet. Start by creating your
+                  first goal!
                 </p>
                 <Button onClick={() => setCreateOpen(true)}>
                   <Plus className="size-4" />
@@ -186,16 +184,22 @@ export default function Dashboard({ userId }: DashboardProps) {
           </div>
           <div className="rounded-lg border p-4">
             <div className="text-2xl font-bold">
-              {goals.filter((g) => (g.current_progress / g.target_value) * 100 >= 100).length}
+              {
+                goals.filter(
+                  (g) => (g.current_progress / g.target_value) * 100 >= 100
+                ).length
+              }
             </div>
             <div className="text-sm text-muted-foreground">Completed</div>
           </div>
           <div className="rounded-lg border p-4">
             <div className="text-2xl font-bold">
-              {goals.filter((g) => {
-                const progress = (g.current_progress / g.target_value) * 100;
-                return progress > 0 && progress < 100;
-              }).length}
+              {
+                goals.filter((g) => {
+                  const progress = (g.current_progress / g.target_value) * 100;
+                  return progress > 0 && progress < 100;
+                }).length
+              }
             </div>
             <div className="text-sm text-muted-foreground">In Progress</div>
           </div>

@@ -10,23 +10,25 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useGoals, useUpdateGoal, useDeleteGoal } from "@/hooks/useGoals";
-import { useLogsByGoal, useDeleteLog } from "@/hooks/useLogs";
+import { useGoals, useDeleteGoal } from "@/hooks/useGoals";
+import { useLogsByGoal, useDeleteLog, useUpdateLog } from "@/hooks/useLogs";
 import { formatDate, formatDeadline, getRelativeTime } from "@/lib/dates";
 import { detectMilestone, formatMilestone } from "@/lib/milestones";
 import {
   Calendar,
-  TrendingUp,
   Plus,
   Trash2,
   Lock,
   Users,
   Edit,
-  MoreHorizontal,
+  Check,
+  X,
 } from "lucide-react";
-import { QuickLogDialog } from "./QuickLogDialog";
-import { EditGoalDialog } from "./EditGoalDialog";
+import { QuickLogDialog } from "../form/QuickLogDialog";
+import { EditGoalDialog } from "../form/EditGoalDialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface GoalDetailDialogProps {
   goalId: string;
@@ -41,11 +43,15 @@ export function GoalDetailDialog({
 }: GoalDetailDialogProps) {
   const [quickLogOpen, setQuickLogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [editingLogId, setEditingLogId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [editNote, setEditNote] = useState("");
 
   const { data: goals = [] } = useGoals();
   const { data: logs = [] } = useLogsByGoal(goalId);
   const deleteGoal = useDeleteGoal();
   const deleteLog = useDeleteLog();
+  const updateLog = useUpdateLog();
 
   const goal = goals.find((g) => g.id === goalId);
 
@@ -83,6 +89,40 @@ export function GoalDetailDialog({
       await deleteLog.mutateAsync({ logId, goalId });
     } catch (error) {
       console.error("Failed to delete log:", error);
+    }
+  };
+
+  const handleStartEdit = (log: (typeof logs)[0]) => {
+    setEditingLogId(log.id);
+    setEditValue(log.value.toString());
+    setEditNote(log.note || "");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingLogId(null);
+    setEditValue("");
+    setEditNote("");
+  };
+
+  const handleSaveEdit = async (logId: string) => {
+    const value = parseFloat(editValue);
+    if (isNaN(value) || value <= 0) {
+      alert("Please enter a valid positive number");
+      return;
+    }
+
+    try {
+      await updateLog.mutateAsync({
+        logId,
+        goalId,
+        updates: {
+          value,
+          note: editNote.trim() || undefined,
+        },
+      });
+      handleCancelEdit();
+    } catch (error) {
+      console.error("Failed to update log:", error);
     }
   };
 
@@ -178,6 +218,8 @@ export function GoalDetailDialog({
                       goal.target_value
                     );
 
+                    const isEditing = editingLogId === log.id;
+
                     return (
                       <div
                         key={log.id}
@@ -188,36 +230,103 @@ export function GoalDetailDialog({
                             {formatMilestone(milestone)}
                           </div>
                         )}
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 space-y-1">
+
+                        {isEditing ? (
+                          // Edit mode
+                          <div className="space-y-3">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold">
-                                +{log.value} {goal.unit_label}
-                              </span>
-                              <span className="text-sm text-muted-foreground">
-                                {getRelativeTime(log.logged_at)}
-                              </span>
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <Label className="min-w-fit">Value:</Label>
+                                  <Input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={(e) =>
+                                      setEditValue(e.target.value)
+                                    }
+                                    placeholder="Enter value"
+                                    className="flex-1"
+                                    min="0"
+                                    step="any"
+                                  />
+                                  <span className="text-sm text-muted-foreground">
+                                    {goal.unit_label}
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  <Label>Note (optional):</Label>
+                                  <Textarea
+                                    value={editNote}
+                                    onChange={(e) =>
+                                      setEditNote(e.target.value)
+                                    }
+                                    placeholder="Add a note..."
+                                    className="min-h-15 resize-none"
+                                  />
+                                </div>
+                              </div>
                             </div>
-                            {log.note && (
-                              <p className="text-sm text-muted-foreground">
-                                {log.note}
-                              </p>
-                            )}
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(
-                                log.logged_at,
-                                "MMM d, yyyy 'at' h:mm a"
-                              )}
-                            </p>
+                            <div className="flex items-center gap-2 justify-end">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={handleCancelEdit}
+                              >
+                                <X className="size-3.5 mr-1" />
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleSaveEdit(log.id)}
+                                disabled={updateLog.isPending}
+                              >
+                                <Check className="size-3.5 mr-1" />
+                                Save
+                              </Button>
+                            </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => handleDeleteLog(log.id)}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </div>
+                        ) : (
+                          // View mode
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold">
+                                  +{log.value} {goal.unit_label}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {getRelativeTime(log.logged_at)}
+                                </span>
+                              </div>
+                              {log.note && (
+                                <p className="text-sm text-muted-foreground">
+                                  {log.note}
+                                </p>
+                              )}
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(
+                                  log.logged_at,
+                                  "MMM d, yyyy 'at' h:mm a"
+                                )}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => handleStartEdit(log)}
+                              >
+                                <Edit className="size-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                onClick={() => handleDeleteLog(log.id)}
+                              >
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
