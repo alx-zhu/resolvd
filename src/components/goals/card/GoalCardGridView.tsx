@@ -9,21 +9,16 @@ import { VisibilityIcon } from "../../common";
 interface GoalCardGridViewProps {
   goal: Goal;
   percentage: number;
-  onCardClick: () => void;
   onQuickLogClick: (e: React.MouseEvent) => void;
 }
 
 export function GoalCardGridView({
   goal,
   percentage,
-  onCardClick,
   onQuickLogClick,
 }: GoalCardGridViewProps) {
   return (
-    <Card
-      className="p-5 hover:shadow-md transition-shadow cursor-pointer"
-      onClick={onCardClick}
-    >
+    <Card className="p-5 hover:shadow-md transition-shadow">
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <h3 className="font-semibold text-base line-clamp-2 flex-1">

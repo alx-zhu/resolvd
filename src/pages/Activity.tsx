@@ -10,11 +10,11 @@ import { Card } from "@/components/ui/card";
 import { detectMilestone } from "@/lib/milestones";
 import { Trophy } from "lucide-react";
 
-interface FeedProps {
+interface ActivityProps {
   userId: string;
 }
 
-export default function Feed({ userId }: FeedProps) {
+export default function Activity({ userId }: ActivityProps) {
   const [showMilestonesOnly, setShowMilestonesOnly] = useState(false);
 
   const { data: friendIds = [] } = useFriendIds(userId);
@@ -22,19 +22,15 @@ export default function Feed({ userId }: FeedProps) {
   const { data: logs = [] } = useLogs();
   const { data: users = [] } = useUsers();
 
-  // Get feed items (logs from friends' public goals)
   const feedItems = useMemo(() => {
-    // Filter goals that belong to friends and are shared
     const friendGoals = goals.filter(
       (g) => friendIds.includes(g.user_id) && g.visibility === 1
     );
 
-    // Get logs for those goals
     const friendLogs = logs.filter((log) =>
       friendGoals.some((g) => g.id === log.goal_id)
     );
 
-    // Create feed items with all necessary data
     const items = friendLogs
       .map((log) => {
         const goal = friendGoals.find((g) => g.id === log.goal_id);
@@ -42,7 +38,6 @@ export default function Feed({ userId }: FeedProps) {
 
         if (!goal || !user) return null;
 
-        // Get all logs for this goal to detect milestones
         const allLogsForGoal = logs
           .filter((l) => l.goal_id === goal.id)
           .sort(
@@ -59,14 +54,12 @@ export default function Feed({ userId }: FeedProps) {
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
-    // Sort by most recent first
     const sorted = items.sort(
       (a, b) =>
         new Date(b.log.logged_at).getTime() -
         new Date(a.log.logged_at).getTime()
     );
 
-    // Filter milestones only if enabled
     if (showMilestonesOnly) {
       return sorted.filter((item) => {
         const previousLogs = item.allLogsForGoal.filter(
@@ -107,7 +100,6 @@ export default function Feed({ userId }: FeedProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Activity Feed</h2>
@@ -116,7 +108,6 @@ export default function Feed({ userId }: FeedProps) {
           </p>
         </div>
 
-        {/* Milestone Filter */}
         <div className="flex items-center gap-2">
           <Checkbox
             id="milestones-only"
@@ -131,7 +122,6 @@ export default function Feed({ userId }: FeedProps) {
         </div>
       </div>
 
-      {/* Feed */}
       {feedItems.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <div className="max-w-md mx-auto space-y-4">
@@ -156,7 +146,6 @@ export default function Feed({ userId }: FeedProps) {
         </div>
       )}
 
-      {/* Stats */}
       {feedItems.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-6">
           <Card className="p-4">

@@ -8,21 +8,16 @@ import { ProgressCircle, VisibilityIcon } from "../../common";
 interface GoalCardListViewProps {
   goal: Goal;
   percentage: number;
-  onCardClick: () => void;
   onQuickLogClick: (e: React.MouseEvent) => void;
 }
 
 export function GoalCardListView({
   goal,
   percentage,
-  onCardClick,
   onQuickLogClick,
 }: GoalCardListViewProps) {
   return (
-    <Card
-      className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-      onClick={onCardClick}
-    >
+    <Card className="p-4 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-4">
         {/* Progress Circle */}
         <ProgressCircle percentage={percentage} />
