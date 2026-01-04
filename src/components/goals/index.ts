@@ -8,6 +8,4 @@ export { ProgressCircle, VisibilityIcon } from "../common";
 export { CreateGoalDialog } from "./form/CreateGoalDialog";
 export { EditGoalDialog } from "./form/EditGoalDialog";
 export { QuickLogDialog } from "./form/QuickLogDialog";
-
-// Detail components
-export { GoalDetailDialog } from "./detail/GoalDetailDialog";
+export { EditLogDialog } from "./form/EditLogDialog";

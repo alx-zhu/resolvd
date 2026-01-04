@@ -4,11 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { useGoals, useDeleteGoal } from "@/hooks/useGoals";
-import { useLogsByGoal, useDeleteLog, useUpdateLog } from "@/hooks/useLogs";
+import { useLogsByGoal, useDeleteLog } from "@/hooks/useLogs";
 import { formatDate, formatDeadline, getRelativeTime } from "@/lib/dates";
 import { detectMilestone, formatMilestone } from "@/lib/milestones";
 import {
@@ -18,13 +15,13 @@ import {
   Lock,
   Users,
   Edit,
-  Check,
-  X,
   ArrowLeft,
 } from "lucide-react";
 import { QuickLogDialog } from "@/components/goals/form/QuickLogDialog";
+import { EditLogDialog } from "@/components/goals/form/EditLogDialog";
 import { EditGoalDialog } from "@/components/goals/form/EditGoalDialog";
 import { ConfirmDialog } from "@/components/common";
+import type { Log } from "@/types/goals";
 
 interface GoalDetailProps {
   userId: string;
@@ -36,9 +33,8 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
 
   const [quickLogOpen, setQuickLogOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [editingLogId, setEditingLogId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [editNote, setEditNote] = useState("");
+  const [editLogOpen, setEditLogOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<Log | null>(null);
   const [confirmDeleteGoal, setConfirmDeleteGoal] = useState(false);
   const [confirmDeleteLog, setConfirmDeleteLog] = useState<{
     open: boolean;
@@ -49,7 +45,6 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
   const { data: logs = [] } = useLogsByGoal(goalId || "");
   const deleteGoal = useDeleteGoal();
   const deleteLog = useDeleteLog();
-  const updateLog = useUpdateLog();
 
   const goal = goals.find((g) => g.id === goalId);
 
@@ -128,37 +123,9 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
     }
   };
 
-  const handleStartEdit = (log: (typeof logs)[0]) => {
-    setEditingLogId(log.id);
-    setEditValue(log.value.toString());
-    setEditNote(log.note || "");
-  };
-
-  const handleCancelEdit = () => {
-    setEditingLogId(null);
-    setEditValue("");
-    setEditNote("");
-  };
-
-  const handleSaveEdit = async (logId: string) => {
-    const value = parseFloat(editValue);
-    if (isNaN(value) || value <= 0) {
-      return;
-    }
-
-    try {
-      await updateLog.mutateAsync({
-        logId,
-        goalId,
-        updates: {
-          value,
-          note: editNote.trim() || undefined,
-        },
-      });
-      handleCancelEdit();
-    } catch (error) {
-      console.error("Failed to update log:", error);
-    }
+  const handleEditLog = (log: Log) => {
+    setSelectedLog(log);
+    setEditLogOpen(true);
   };
 
   return (
@@ -262,106 +229,53 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
                   goal.target_value
                 );
 
-                const isEditing = editingLogId === log.id;
-
                 return (
-                  <div key={log.id} className="rounded-lg border p-4 space-y-3">
+                  <div
+                    key={log.id}
+                    className="rounded-lg border p-4 space-y-2 hover:bg-accent/50 transition-colors"
+                  >
                     {milestone && (
                       <div className="flex items-center gap-2 text-sm font-medium text-primary">
                         {formatMilestone(milestone)}
                       </div>
                     )}
 
-                    {isEditing ? (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 space-y-3">
-                            <div className="flex items-center gap-2">
-                              <Label className="min-w-fit">Value:</Label>
-                              <Input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                placeholder="Enter value"
-                                className="flex-1"
-                                min="0"
-                                step="any"
-                              />
-                              <span className="text-sm text-muted-foreground whitespace-nowrap">
-                                {goal.unit_label}
-                              </span>
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Note (optional):</Label>
-                              <Textarea
-                                value={editNote}
-                                onChange={(e) => setEditNote(e.target.value)}
-                                placeholder="Add a note..."
-                                className="min-h-20 resize-none"
-                              />
-                            </div>
-                          </div>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-lg">
+                            +{log.value} {goal.unit_label}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {getRelativeTime(log.logged_at)}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-2 justify-end">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={handleCancelEdit}
-                          >
-                            <X className="size-4" />
-                            Cancel
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleSaveEdit(log.id)}
-                            disabled={updateLog.isPending}
-                          >
-                            <Check className="size-4" />
-                            Save
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-lg">
-                              +{log.value} {goal.unit_label}
-                            </span>
-                            <span className="text-sm text-muted-foreground">
-                              {getRelativeTime(log.logged_at)}
-                            </span>
-                          </div>
-                          {log.note && (
-                            <p className="text-sm text-muted-foreground">
-                              {log.note}
-                            </p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            {formatDate(
-                              log.logged_at,
-                              "MMM d, yyyy 'at' h:mm a"
-                            )}
+                        {log.note && (
+                          <p className="text-sm text-muted-foreground">
+                            {log.note}
                           </p>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => handleStartEdit(log)}
-                          >
-                            <Edit className="size-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={() => handleDeleteLog(log.id)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </div>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(log.logged_at, "MMM d, yyyy 'at' h:mm a")}
+                        </p>
                       </div>
-                    )}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => handleEditLog(log)}
+                        >
+                          <Edit className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => handleDeleteLog(log.id)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -376,6 +290,14 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
         unitLabel={goal.unit_label}
         open={quickLogOpen}
         onOpenChange={setQuickLogOpen}
+      />
+
+      <EditLogDialog
+        log={selectedLog}
+        goalId={goalId}
+        unitLabel={goal.unit_label}
+        open={editLogOpen}
+        onOpenChange={setEditLogOpen}
       />
 
       <EditGoalDialog goal={goal} open={editOpen} onOpenChange={setEditOpen} />
