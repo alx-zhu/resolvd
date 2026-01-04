@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Grid3x3, List } from "lucide-react";
 import type { ViewMode } from "@/types/goals";
 
@@ -36,15 +43,16 @@ export function DashboardToolbar({
       </div>
 
       {/* Sort */}
-      <select
-        value={sortBy}
-        onChange={(e) => onSortChange(e.target.value as SortOption)}
-        className="h-9 rounded-md border border-input bg-background px-3 text-sm"
-      >
-        <option value="created">Recently Created</option>
-        <option value="progress">Most Progress</option>
-        <option value="deadline">Soonest Deadline</option>
-      </select>
+      <Select value={sortBy} onValueChange={onSortChange}>
+        <SelectTrigger className="w-45">
+          <SelectValue placeholder="Sort by..." />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="created">Recently Created</SelectItem>
+          <SelectItem value="progress">Most Progress</SelectItem>
+          <SelectItem value="deadline">Soonest Deadline</SelectItem>
+        </SelectContent>
+      </Select>
 
       {/* View Mode Toggle */}
       <Button
