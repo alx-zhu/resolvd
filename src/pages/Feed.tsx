@@ -5,6 +5,8 @@ import { useLogs } from "@/hooks/useLogs";
 import { useUsers } from "@/hooks/useUsers";
 import { FeedItem } from "@/components/feed/FeedItem";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 import { detectMilestone } from "@/lib/milestones";
 import { Trophy } from "lucide-react";
 
@@ -116,12 +118,12 @@ export default function Feed({ userId }: FeedProps) {
 
         {/* Milestone Filter */}
         <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          <Checkbox
             id="milestones-only"
             checked={showMilestonesOnly}
-            onChange={(e) => setShowMilestonesOnly(e.target.checked)}
-            className="size-4 rounded border-input"
+            onCheckedChange={(checked) =>
+              setShowMilestonesOnly(checked === true)
+            }
           />
           <Label htmlFor="milestones-only" className="cursor-pointer">
             Milestones only
@@ -157,11 +159,11 @@ export default function Feed({ userId }: FeedProps) {
       {/* Stats */}
       {feedItems.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-6">
-          <div className="rounded-lg border p-4">
+          <Card className="p-4">
             <div className="text-2xl font-bold">{friendIds.length}</div>
             <div className="text-sm text-muted-foreground">Friends</div>
-          </div>
-          <div className="rounded-lg border p-4">
+          </Card>
+          <Card className="p-4">
             <div className="text-2xl font-bold">
               {
                 goals.filter(
@@ -170,13 +172,13 @@ export default function Feed({ userId }: FeedProps) {
               }
             </div>
             <div className="text-sm text-muted-foreground">Shared Goals</div>
-          </div>
-          <div className="rounded-lg border p-4">
+          </Card>
+          <Card className="p-4">
             <div className="text-2xl font-bold">{feedItems.length}</div>
             <div className="text-sm text-muted-foreground">
               Recent Activities
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>

@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { AddFriendDialog } from "@/components/friends/AddFriendDialog";
 import { UserPlus, Check, X, Users as UsersIcon, Target } from "lucide-react";
+import { UserAvatar, ConfirmDialog } from "@/components/common";
 
 interface FriendsProps {
   userId: string;
@@ -19,6 +20,11 @@ interface FriendsProps {
 
 export default function Friends({ userId }: FriendsProps) {
   const [addFriendOpen, setAddFriendOpen] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState<{
+    open: boolean;
+    userId: string;
+    userName: string;
+  }>({ open: false, userId: "", userName: "" });
 
   const { data: connections = [] } = useUserConnections(userId);
   const { data: users = [] } = useUsers();
@@ -33,7 +39,9 @@ export default function Friends({ userId }: FriendsProps) {
   const pendingSent = connections.filter(
     (c) => c.status === "pending" && c.user_id_1 === userId
   );
-  const acceptedConnections = connections.filter((c) => c.status === "accepted");
+  const acceptedConnections = connections.filter(
+    (c) => c.status === "accepted"
+  );
 
   const handleAccept = async (connectionUserId: string) => {
     try {
@@ -57,13 +65,15 @@ export default function Friends({ userId }: FriendsProps) {
     }
   };
 
-  const handleRemove = async (connectionUserId: string) => {
-    if (!confirm("Are you sure you want to remove this friend?")) return;
+  const handleRemove = async (connectionUserId: string, userName: string) => {
+    setConfirmRemove({ open: true, userId: connectionUserId, userName });
+  };
 
+  const confirmRemoveAction = async () => {
     try {
       await deleteConnection.mutateAsync({
         userId1: userId,
-        userId2: connectionUserId,
+        userId2: confirmRemove.userId,
       });
     } catch (error) {
       console.error("Failed to remove friend:", error);
@@ -95,15 +105,15 @@ export default function Friends({ userId }: FriendsProps) {
           </div>
           <div className="space-y-2">
             {pendingReceived.map((connection) => {
-              const otherUser = users.find((u) => u.id === connection.user_id_1);
+              const otherUser = users.find(
+                (u) => u.id === connection.user_id_1
+              );
               if (!otherUser) return null;
 
               return (
                 <Card key={connection.user_id_1} className="p-4">
                   <div className="flex items-center gap-4">
-                    <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary font-medium shrink-0">
-                      {otherUser.name.charAt(0)}
-                    </div>
+                    <UserAvatar name={otherUser.name} size="lg" />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium">{otherUser.name}</div>
                       <div className="text-sm text-muted-foreground">
@@ -153,7 +163,8 @@ export default function Friends({ userId }: FriendsProps) {
               <div>
                 <h4 className="font-semibold mb-2">No Friends Yet</h4>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Add friends to see their goals and celebrate achievements together
+                  Add friends to see their goals and celebrate achievements
+                  together
                 </p>
                 <Button onClick={() => setAddFriendOpen(true)}>
                   <UserPlus className="size-4" />
@@ -182,9 +193,11 @@ export default function Friends({ userId }: FriendsProps) {
                 <Card key={otherUserId} className="p-5">
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
-                      <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary font-medium text-lg shrink-0">
-                        {otherUser.name.charAt(0)}
-                      </div>
+                      <UserAvatar
+                        name={otherUser.name}
+                        size="lg"
+                        className="size-14 text-lg"
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-lg">
                           {otherUser.name}
@@ -198,7 +211,9 @@ export default function Friends({ userId }: FriendsProps) {
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1.5">
                         <Target className="size-4 text-muted-foreground" />
-                        <span className="font-medium">{sharedGoals.length}</span>
+                        <span className="font-medium">
+                          {sharedGoals.length}
+                        </span>
                         <span className="text-muted-foreground">
                           active {sharedGoals.length === 1 ? "goal" : "goals"}
                         </span>
@@ -208,7 +223,7 @@ export default function Friends({ userId }: FriendsProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleRemove(otherUserId)}
+                      onClick={() => handleRemove(otherUserId, otherUser.name)}
                       className="w-full"
                     >
                       Remove Friend
@@ -240,10 +255,7 @@ export default function Friends({ userId }: FriendsProps) {
                 if (!otherUser) return null;
 
                 return (
-                  <Card
-                    key={connection.user_id_2}
-                    className="p-4 opacity-60"
-                  >
+                  <Card key={connection.user_id_2} className="p-4 opacity-60">
                     <div className="flex items-center gap-4">
                       <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground font-medium shrink-0">
                         {otherUser.name.charAt(0)}
@@ -268,6 +280,19 @@ export default function Friends({ userId }: FriendsProps) {
         userId={userId}
         open={addFriendOpen}
         onOpenChange={setAddFriendOpen}
+      />
+
+      <ConfirmDialog
+        open={confirmRemove.open}
+        onOpenChange={(open) =>
+          setConfirmRemove({ open, userId: "", userName: "" })
+        }
+        title="Remove Friend"
+        description={`Are you sure you want to remove ${confirmRemove.userName} from your friends? You can add them again later.`}
+        confirmText="Remove"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={confirmRemoveAction}
       />
     </div>
   );

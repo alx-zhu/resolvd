@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { getRelativeTime, formatDate } from "@/lib/dates";
 import { detectMilestone, formatMilestone } from "@/lib/milestones";
 import { TrendingUp } from "lucide-react";
+import { UserAvatar } from "@/components/common";
 
 interface FeedItemProps {
   log: Log;
@@ -30,9 +31,7 @@ export function FeedItem({ log, goal, user, allLogsForGoal }: FeedItemProps) {
     <Card className="p-4">
       <div className="flex gap-4">
         {/* User Avatar */}
-        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary font-medium shrink-0">
-          {user.name.charAt(0)}
-        </div>
+        <UserAvatar name={user.name} />
 
         {/* Content */}
         <div className="flex-1 min-w-0 space-y-2">

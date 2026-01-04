@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronDown, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { UserAvatar } from "./UserAvatar";
 
 export function UserSwitcher() {
   const { data: currentUser } = useCurrentUser();
@@ -40,9 +41,7 @@ export function UserSwitcher() {
                   : "hover:bg-accent/50"
               }`}
             >
-              <div className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary font-medium">
-                {user.name.charAt(0)}
-              </div>
+              <UserAvatar name={user.name} size="sm" />
               <div className="flex-1 text-left">
                 <div className="font-medium">{user.name}</div>
                 <div className="text-xs text-muted-foreground">

@@ -29,6 +29,7 @@ import { EditGoalDialog } from "../form/EditGoalDialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { ConfirmDialog } from "@/components/common";
 
 interface GoalDetailDialogProps {
   goalId: string;
@@ -46,6 +47,11 @@ export function GoalDetailDialog({
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editNote, setEditNote] = useState("");
+  const [confirmDeleteGoal, setConfirmDeleteGoal] = useState(false);
+  const [confirmDeleteLog, setConfirmDeleteLog] = useState<{
+    open: boolean;
+    logId: string;
+  }>({ open: false, logId: "" });
 
   const { data: goals = [] } = useGoals();
   const { data: logs = [] } = useLogsByGoal(goalId);
@@ -67,13 +73,10 @@ export function GoalDetailDialog({
   );
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this goal? All progress logs will also be deleted."
-      )
-    )
-      return;
+    setConfirmDeleteGoal(true);
+  };
 
+  const confirmDeleteGoalAction = async () => {
     try {
       await deleteGoal.mutateAsync(goalId);
       onOpenChange(false);
@@ -83,10 +86,12 @@ export function GoalDetailDialog({
   };
 
   const handleDeleteLog = async (logId: string) => {
-    if (!confirm("Are you sure you want to delete this log entry?")) return;
+    setConfirmDeleteLog({ open: true, logId });
+  };
 
+  const confirmDeleteLogAction = async () => {
     try {
-      await deleteLog.mutateAsync({ logId, goalId });
+      await deleteLog.mutateAsync({ logId: confirmDeleteLog.logId, goalId });
     } catch (error) {
       console.error("Failed to delete log:", error);
     }
@@ -107,7 +112,7 @@ export function GoalDetailDialog({
   const handleSaveEdit = async (logId: string) => {
     const value = parseFloat(editValue);
     if (isNaN(value) || value <= 0) {
-      alert("Please enter a valid positive number");
+      // TODO: Replace with toast notification when available
       return;
     }
 
@@ -346,6 +351,28 @@ export function GoalDetailDialog({
       />
 
       <EditGoalDialog goal={goal} open={editOpen} onOpenChange={setEditOpen} />
+
+      <ConfirmDialog
+        open={confirmDeleteGoal}
+        onOpenChange={setConfirmDeleteGoal}
+        title="Delete Goal"
+        description="Are you sure you want to delete this goal? All progress logs will also be deleted. This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={confirmDeleteGoalAction}
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteLog.open}
+        onOpenChange={(open) => setConfirmDeleteLog({ open, logId: "" })}
+        title="Delete Log Entry"
+        description="Are you sure you want to delete this log entry? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={confirmDeleteLogAction}
+      />
     </>
   );
 }

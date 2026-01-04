@@ -10,9 +10,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { useUserByEmail } from "@/hooks/useUsers";
 import { useCreateConnection } from "@/hooks/useConnections";
 import { Loader2, Check, AlertCircle } from "lucide-react";
+import { UserAvatar } from "@/components/common";
 
 interface AddFriendDialogProps {
   userId: string;
@@ -95,7 +97,7 @@ export function AddFriendDialog({
 
             {/* Search Results */}
             {searchAttempted && !isSearching && (
-              <div className="rounded-lg border p-4">
+              <Card className="p-4">
                 {foundUser ? (
                   foundUser.id === userId ? (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -105,9 +107,7 @@ export function AddFriendDialog({
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary font-medium">
-                          {foundUser.name.charAt(0)}
-                        </div>
+                        <UserAvatar name={foundUser.name} />
                         <div>
                           <div className="font-medium">{foundUser.name}</div>
                           <div className="text-sm text-muted-foreground">
@@ -138,7 +138,7 @@ export function AddFriendDialog({
                     <span>No user found with this email address</span>
                   </div>
                 )}
-              </div>
+              </Card>
             )}
 
             {isSearching && (
