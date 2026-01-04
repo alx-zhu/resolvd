@@ -4,7 +4,7 @@ import { useCurrentUser } from "./hooks/useUsers";
 import Dashboard from "./pages/Dashboard";
 import Feed from "./pages/Feed";
 import Friends from "./pages/Friends";
-import { UserSwitcher } from "./components/UserSwitcher";
+import { UserSwitcher } from "./components/common/UserSwitcher";
 import { ThemeProvider } from "./providers";
 import { ThemeToggle } from "./components/common";
 
