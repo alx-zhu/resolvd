@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Log } from "@/types/goals";
 import * as logsApi from "@/api/logs.api";
+import * as goalsApi from "@/api/goals.api";
 import { goalKeys } from "./useGoals";
 
 export const logKeys = {
@@ -40,11 +41,11 @@ export const useCreateLog = () => {
   return useMutation({
     mutationFn: async (newLog: Omit<Log, "id" | "updated_at">) => {
       const log = await logsApi.createLog(newLog);
-      
-      // Recalculate goal progress
+
+      // Recalculate and update goal progress
       const progress = await logsApi.calculateGoalProgress(newLog.goal_id);
-      await queryClient.invalidateQueries({ queryKey: goalKeys.all });
-      
+      await goalsApi.updateGoalProgress(newLog.goal_id, progress);
+
       return log;
     },
     onSuccess: (_, variables) => {
@@ -52,6 +53,7 @@ export const useCreateLog = () => {
       queryClient.invalidateQueries({
         queryKey: logKeys.byGoal(variables.goal_id),
       });
+      queryClient.invalidateQueries({ queryKey: goalKeys.all });
     },
   });
 };
@@ -73,17 +75,18 @@ export const useUpdateLog = () => {
       updates: Partial<Omit<Log, "id" | "goal_id">>;
     }) => {
       const log = await logsApi.updateLog(logId, updates);
-      
-      // Recalculate goal progress if value changed
+
+      // Recalculate and update goal progress if value changed
       if (updates.value !== undefined) {
         const progress = await logsApi.calculateGoalProgress(goalId);
-        await queryClient.invalidateQueries({ queryKey: goalKeys.all });
+        await goalsApi.updateGoalProgress(goalId, progress);
       }
-      
+
       return log;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: logKeys.all });
+      queryClient.invalidateQueries({ queryKey: goalKeys.all });
     },
   });
 };
@@ -95,15 +98,22 @@ export const useDeleteLog = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ logId, goalId }: { logId: string; goalId: string }) => {
+    mutationFn: async ({
+      logId,
+      goalId,
+    }: {
+      logId: string;
+      goalId: string;
+    }) => {
       await logsApi.deleteLog(logId);
-      
-      // Recalculate goal progress
+
+      // Recalculate and update goal progress
       const progress = await logsApi.calculateGoalProgress(goalId);
-      await queryClient.invalidateQueries({ queryKey: goalKeys.all });
+      await goalsApi.updateGoalProgress(goalId, progress);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: logKeys.all });
+      queryClient.invalidateQueries({ queryKey: goalKeys.all });
     },
   });
 };
