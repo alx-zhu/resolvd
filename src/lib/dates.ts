@@ -1,4 +1,4 @@
-import { format, differenceInDays, differenceInCalendarDays } from "date-fns";
+import { format, differenceInCalendarDays } from "date-fns";
 
 /**
  * Calculate pacing required to reach goal

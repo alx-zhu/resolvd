@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Plus } from "lucide-react";
 import { formatDeadline } from "@/lib/dates";
-import { ProgressCircle, VisibilityIcon } from "../../common";
+import { ProgressCircle } from "../../common";
 
 interface GoalCardListViewProps {
   goal: Goal;
@@ -24,12 +24,9 @@ export function GoalCardListView({
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className="font-semibold text-base truncate">{goal.title}</h3>
-            <div className="flex items-center gap-2 shrink-0">
-              <VisibilityIcon visibility={goal.visibility} />
-            </div>
-          </div>
+          <h3 className="font-semibold text-base truncate mb-1">
+            {goal.title}
+          </h3>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>
               {goal.current_progress} / {goal.target_value} {goal.unit_label}

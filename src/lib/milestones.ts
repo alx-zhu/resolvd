@@ -1,4 +1,10 @@
-import type { Log, Milestone } from "@/types/goals";
+import type { Log } from "@/types/goals";
+
+export interface Milestone {
+  type: "first_log" | "percentage" | "log_count";
+  value?: number; // For percentage (25, 50, 75, 100) or log count (10, 20, etc)
+  achieved_at: string;
+}
 
 /**
  * Detect if a log represents a milestone achievement

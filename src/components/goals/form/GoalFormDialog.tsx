@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateGoal, useUpdateGoal } from "@/hooks/useGoals";
 import { useCurrentUser } from "@/hooks/useUsers";
-import { Loader2, Lock, Users } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { calculatePacing } from "@/lib/dates";
 import type { Goal } from "@/types/goals";
 
@@ -46,9 +46,6 @@ export function GoalFormDialog({
       ? new Date(goal.deadline).toISOString().split("T")[0]
       : ""
   );
-  const [visibility, setVisibility] = useState<0 | 1>(() =>
-    isEditMode && goal ? goal.visibility : 1
-  );
 
   const { data: currentUser } = useCurrentUser();
   const createGoal = useCreateGoal();
@@ -77,7 +74,6 @@ export function GoalFormDialog({
             target_value: numValue,
             unit_label: unitLabel.trim() || undefined,
             deadline: new Date(deadline).toISOString(),
-            visibility,
           },
         });
       } else {
@@ -90,7 +86,6 @@ export function GoalFormDialog({
           target_value: numValue,
           unit_label: unitLabel.trim() || undefined,
           deadline: new Date(deadline).toISOString(),
-          visibility,
         });
 
         // Reset form for create mode
@@ -98,7 +93,6 @@ export function GoalFormDialog({
         setTargetValue("");
         setUnitLabel("");
         setDeadline("");
-        setVisibility(1);
       }
 
       onOpenChange(false);
@@ -226,31 +220,6 @@ export function GoalFormDialog({
                 </div>
               </div>
             )}
-
-            {/* Visibility */}
-            <div className="space-y-2">
-              <Label>Visibility</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={visibility === 0 ? "default" : "outline"}
-                  onClick={() => setVisibility(0)}
-                  className="flex-1"
-                >
-                  <Lock className="size-4" />
-                  Private
-                </Button>
-                <Button
-                  type="button"
-                  variant={visibility === 1 ? "default" : "outline"}
-                  onClick={() => setVisibility(1)}
-                  className="flex-1"
-                >
-                  <Users className="size-4" />
-                  Friends
-                </Button>
-              </div>
-            </div>
           </div>
 
           <DialogFooter>

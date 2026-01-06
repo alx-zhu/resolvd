@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as usersApi from "@/api/users.api";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export const userKeys = {
   all: ["users"] as const,
@@ -57,16 +57,4 @@ export const useCurrentUserId = () => {
   };
 
   return { userId, switchUser };
-};
-
-/**
- * Fetch user by email
- */
-export const useUserByEmail = (email: string) => {
-  return useQuery({
-    queryKey: [...userKeys.all, "byEmail", email],
-    queryFn: () => usersApi.fetchUserByEmail(email),
-    enabled: !!email,
-    staleTime: 1000 * 60 * 10,
-  });
 };

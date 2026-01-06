@@ -6,7 +6,6 @@ import { CreateGoalDialog } from "@/components/goals";
 import {
   DashboardHeader,
   DashboardToolbar,
-  DashboardStats,
   EmptyState,
   GoalsList,
   type SortOption,
@@ -56,8 +55,6 @@ export default function Dashboard({ userId }: DashboardProps) {
       ) : (
         <GoalsList goals={filteredGoals} viewMode={viewMode} />
       )}
-
-      <DashboardStats goals={goals} />
 
       <CreateGoalDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>

@@ -8,19 +8,10 @@ import { useGoals, useDeleteGoal } from "@/hooks/useGoals";
 import { useLogsByGoal, useDeleteLog } from "@/hooks/useLogs";
 import { formatDate, formatDeadline, getRelativeTime } from "@/lib/dates";
 import { detectMilestone, formatMilestone } from "@/lib/milestones";
-import {
-  Calendar,
-  Plus,
-  Trash2,
-  Lock,
-  Users,
-  Edit,
-  ArrowLeft,
-} from "lucide-react";
+import { Calendar, Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 import { QuickLogDialog } from "@/components/goals/form/QuickLogDialog";
 import { EditLogDialog } from "@/components/goals/form/EditLogDialog";
 import { EditGoalDialog } from "@/components/goals/form/EditGoalDialog";
-import { ConfirmDialog } from "@/components/common";
 import type { Log } from "@/types/goals";
 
 interface GoalDetailProps {
@@ -35,11 +26,6 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [editLogOpen, setEditLogOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<Log | null>(null);
-  const [confirmDeleteGoal, setConfirmDeleteGoal] = useState(false);
-  const [confirmDeleteLog, setConfirmDeleteLog] = useState<{
-    open: boolean;
-    logId: string;
-  }>({ open: false, logId: "" });
 
   const { data: goals = [] } = useGoals();
   const { data: logs = [] } = useLogsByGoal(goalId || "");
@@ -99,27 +85,31 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
   );
 
   const handleDelete = async () => {
-    setConfirmDeleteGoal(true);
-  };
-
-  const confirmDeleteGoalAction = async () => {
-    try {
-      await deleteGoal.mutateAsync(goalId);
-      navigate("/");
-    } catch (error) {
-      console.error("Failed to delete goal:", error);
+    if (
+      window.confirm(
+        "Are you sure you want to delete this goal? All progress logs will also be deleted. This action cannot be undone."
+      )
+    ) {
+      try {
+        await deleteGoal.mutateAsync(goalId);
+        navigate("/");
+      } catch (error) {
+        console.error("Failed to delete goal:", error);
+      }
     }
   };
 
   const handleDeleteLog = async (logId: string) => {
-    setConfirmDeleteLog({ open: true, logId });
-  };
-
-  const confirmDeleteLogAction = async () => {
-    try {
-      await deleteLog.mutateAsync({ logId: confirmDeleteLog.logId, goalId });
-    } catch (error) {
-      console.error("Failed to delete log:", error);
+    if (
+      window.confirm(
+        "Are you sure you want to delete this log entry? This action cannot be undone."
+      )
+    ) {
+      try {
+        await deleteLog.mutateAsync({ logId, goalId });
+      } catch (error) {
+        console.error("Failed to delete log:", error);
+      }
     }
   };
 
@@ -143,19 +133,6 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl font-bold mb-2">{goal.title}</h1>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              {goal.visibility === 0 ? (
-                <>
-                  <Lock className="size-4" />
-                  <span>Private</span>
-                </>
-              ) : (
-                <>
-                  <Users className="size-4" />
-                  <span>Shared with friends</span>
-                </>
-              )}
-            </div>
           </div>
           <div className="flex gap-2 shrink-0">
             <Button
@@ -301,28 +278,6 @@ export default function GoalDetail({ userId }: GoalDetailProps) {
       />
 
       <EditGoalDialog goal={goal} open={editOpen} onOpenChange={setEditOpen} />
-
-      <ConfirmDialog
-        open={confirmDeleteGoal}
-        onOpenChange={setConfirmDeleteGoal}
-        title="Delete Goal"
-        description="Are you sure you want to delete this goal? All progress logs will also be deleted. This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
-        variant="destructive"
-        onConfirm={confirmDeleteGoalAction}
-      />
-
-      <ConfirmDialog
-        open={confirmDeleteLog.open}
-        onOpenChange={(open) => setConfirmDeleteLog({ open, logId: "" })}
-        title="Delete Log Entry"
-        description="Are you sure you want to delete this log entry? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
-        variant="destructive"
-        onConfirm={confirmDeleteLogAction}
-      />
     </>
   );
 }

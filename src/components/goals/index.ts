@@ -2,7 +2,7 @@
 export { GoalCard } from "./card/GoalCard";
 
 // Re-export common components for convenience
-export { ProgressCircle, VisibilityIcon } from "../common";
+export { ProgressCircle } from "../common";
 
 // Form components
 export { CreateGoalDialog } from "./form/CreateGoalDialog";

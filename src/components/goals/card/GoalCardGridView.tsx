@@ -4,7 +4,6 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Calendar, Plus } from "lucide-react";
 import { formatDeadline } from "@/lib/dates";
-import { VisibilityIcon } from "../../common";
 
 interface GoalCardGridViewProps {
   goal: Goal;
@@ -20,15 +19,9 @@ export function GoalCardGridView({
   return (
     <Card className="p-5 hover:shadow-md transition-shadow">
       {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <h3 className="font-semibold text-base line-clamp-2 flex-1">
-          {goal.title}
-        </h3>
-        <VisibilityIcon
-          visibility={goal.visibility}
-          className="size-4 text-muted-foreground shrink-0"
-        />
-      </div>
+      <h3 className="font-semibold text-base line-clamp-2 mb-3">
+        {goal.title}
+      </h3>
 
       {/* Progress */}
       <div className="space-y-3 mb-4">
